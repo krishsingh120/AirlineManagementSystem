@@ -1,0 +1,65 @@
+[Service 1 (100qps) Publisher] —————> message queue [msgi, msg2 ... msg 160] -———————>[Service 2 (20qps) Subscriber]
+[Service 2 (Publisher)] 一-一一 message queue [msgs] ——> [Servivce 1 (subcriber)]
+
+
+
+leetcode backend (how to test case work.)
+
+[input text 1] -> [output text]
+submit -> [submission text]
+
+
+
+
+Exchange (short notes) 
+           |
+    Acts like a router / post office 📦
+
+    Producer → Exchange → Queue(s)
+
+    Does not store messages (only routes them)
+
+    Needs bindings to connect queues
+
+    Types:
+
+    Direct → exact match routing key
+
+    Fanout → broadcast to all queues
+
+    Topic → pattern-based (user.*, order.#)
+
+    Headers → match on headers
+
+
+
+
+
+RabbitMQ => In BookingService msg should be published and In ReminderService msg should be subcribed.
+
+
+
+Write-Host @"
+          +-------------+
+          |   Publisher |
+          +-------------+
+                 |
+                 v
+          +-------------+
+          |   Exchange  |
+          +-------------+
+            /     |     \
+           /      |      \
+          v       v       v
+   +---------+ +---------+ +---------+
+   | Queue 1 | | Queue 2 | | Queue 3 |
+   +---------+ +---------+ +---------+
+      |           |           |
+      v           v           v
++-----------+ +-----------+ +-----------+
+| Consumer1 | | Consumer2 | | Consumer3 |
++-----------+ +-----------+ +-----------+
+"
+
+
+Publishing and createChannel logic same always, but some changes subscribe logic according to need. 

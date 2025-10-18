@@ -1,0 +1,37 @@
+So you have:
+
+Auth Service → handles login, signup, issues JWT / tokens.
+
+Booking Service → handles bookings.
+
+API Gateway → entry point, forwards traffic, does checks.
+
+🔹 Where should auth logic live?
+
+Auth Service is the source of truth (user data, token generation, refresh tokens).
+
+API Gateway is the gatekeeper → validates the token before letting the request reach Booking Service.
+
+So, the gateway doesn’t re-authenticate, it just verifies the token (JWT signature, expiry, etc.).
+
+🔹 Flow with Separate Auth Service
+
+User logs in → hits Auth Service (/auth/login).
+
+Auth service validates credentials.
+
+Issues JWT (signed with JWT_SECRET).
+
+User stores JWT (in localStorage/cookie).
+
+User tries to access Booking → sends JWT in Authorization: Bearer <token>.
+
+API Gateway intercepts request:
+
+Middleware extracts JWT.
+
+Verifies using jwt.verify(token, JWT_SECRET).
+
+If valid → forward to Booking Service.
+
+If invalid → return 401/403.

@@ -1,0 +1,133 @@
+Commands:
+     - npx sequelize init        // initialise the sequelize
+     - npx sequelize db:create   // create database
+     - npx sequelize model:generate --name City --attributes name:String    // create model in database, by default add createdAt and updatedAt
+     - npx sequelize db:migrate   // database ko update krne ke liye on the basis of migration file.
+     - npx sequelize-cli db:migrate:undo   // undo the recent changes
+     - npx sequelize model:generate --name Airport --attributes name:String,address:String,cityId:Integer
+     - npx sequelize seed:generate --name add-airports
+
+
+
+
+
+
+
+
+
+
+
+
+1. change in model => means you change in js level
+2. change in migration => means change in table level
+
+
+# use case of controller => the req is going on to controller, and this controller is pass all of this controller data for service and repository layer, they will process some how things, and give at back to controller, then controller will form your res structure, how your res should look like and sended back to the user.
+
+# Seeder can helps us to you actualy seed some data, and put some starting data
+
+
+# Airplane CRUD khud se krna hai....
+
+- Controller → Just handles HTTP requests and responses.
+
+- Service Layer → Where your business logic lives.
+
+- Repository → Only for database operations, no logic.
+
+- Database/API → Actual data source.
+
+
+
+          ┌────────────────────────────────┐
+          │            Client               │
+          │ (Frontend, Mobile App, etc.)    │
+          └────────────────────────────────┘
+                          │
+                          ▼
+          ┌────────────────────────────────┐
+          │          Controller             │
+          │ - Receives request              │
+          │ - Validates input               │
+          │ - Calls Service layer           │
+          └────────────────────────────────┘
+                          │
+                          ▼
+          ┌────────────────────────────────┐
+          │           Service               │
+          │  *** Business Logic Here ***    │
+          │ - Apply rules & validations     │
+          │ - Handle calculations           │
+          │ - Manage workflows              │
+          │ - Call repository for DB ops    │
+          └────────────────────────────────┘
+                          │
+                          ▼
+          ┌────────────────────────────────┐
+          │          Repository             │
+          │ - Pure DB queries               │
+          │ - CRUD operations               │
+          │ - No business rules here        │
+          └────────────────────────────────┘
+                          │
+                          ▼
+          ┌────────────────────────────────┐
+          │         Database / API          │
+          └────────────────────────────────┘
+
+
+
+# Authentication and Authorization
+
+Authenticate → It is a process using which we can implicitly identify users on our application. This process tells us about who the user is. The general singup/login/logout flow is used to automatically a user.
+
+Authorizatiion → It is a process using which we can identify the capability of a user i.e. what a user can do on our application
+
+
+# How to Authenticate :
+1. Mobile Number
+2. omniAuth => gmail/fb/github  --> third party service 
+3. Token based
+
+
+# Token based Authentication
+
++--------+       +--------+       +--------+       +--------+
+| Client | ----> | Server | ----> |  Auth  | ----> | Database |
++--------+       +--------+       +--------+       +--------+
+    |                |                 |                |
+    | 1. Login (Credentials) |                |
+    |--------------------------------------->|
+    |                |                 |                |
+    |                | 2. Verify Credentials |
+    |                |<----------------------|
+    |                |                 |                |
+    | 3. Return JWT  |                |
+    |<--------------------------------|
+    |                |                 |                |
+    | 4. Store Token (LocalStorage/Cookie) |
+    |                |                 |                |
+    | 5. Request with Token (Bearer <JWT>) |
+    |-------------------------------------->|
+    |                |                 |                |
+    |                | 6. Verify Token |
+    |                |<----------------------|
+    |                |                 |                |
+    | 7. Return Protected Data |
+    |<--------------------------------|
+
+<-------------------------------------------------------------------------------->
+
++---------+                                      +-------------+
+|         | --- Login (username/password) ---> |             |
+|  Client |                                      |   Server    |
+|         | <------ JWT Token (signed) -------- |             |
++---------+                                      +-------------+
+     |                                                  |
+     | -- Request with Token in Header ---------------->|
+     |     Authorization: Bearer <token>                |
+     |                                                  |
+     |<------ Data / Protected Resource ----------------|
+
+
+# best logging library : winston npm 

@@ -1,0 +1,126 @@
+homework build a library => express-route-list
+
+
+
+i want ot make a our pure new raw hard coded npm package on this topic if i get all route inside the route folder they will inside the src folder 
+ChatGPT said:
+
+Nice 🔥 you’re thinking like a framework author now!
+Let’s outline how to create your own npm package that auto-loads all route files from a src/routes folder (similar to Rails).
+
+🚀 Step 1: Package Setup
+mkdir express-auto-routes
+cd express-auto-routes
+npm init -y
+
+
+This will generate package.json.
+
+🚀 Step 2: Project Structure
+express-auto-routes/
+ ├── package.json
+ ├── index.js          ← main entry of your package
+ └── src/
+      └── routes/      ← user’s project will have routes here
+
+🚀 Step 3: Core Logic (index.js)
+
+We’ll write code to scan src/routes folder, require all files, and attach them to Express router.
+
+// index.js
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+
+/**
+ * Auto-loads all route files from src/routes
+ * @param {Object} app - Express app instance
+ * @param {String} basePath - base prefix for routes (default: /api)
+ */
+function loadRoutes(app, basePath = "/api") {
+  const router = express.Router();
+  const routesDir = path.join(process.cwd(), "src", "routes");
+
+  // Read files from src/routes
+  fs.readdirSync(routesDir).forEach((file) => {
+    if (file.endsWith(".js")) {
+      const routePath = path.join(routesDir, file);
+      const routeModule = require(routePath);
+
+      // Route name = file name without extension (users.js → /users)
+      const routeName = "/" + file.replace(".js", "");
+      router.use(routeName, routeModule);
+      console.log(`✅ Loaded route: ${basePath}${routeName}`);
+    }
+  });
+
+  // Mount everything under /api (or basePath)
+  app.use(basePath, router);
+}
+
+module.exports = loadRoutes;
+
+🚀 Step 4: How a User Would Use Your Package
+Example User Project:
+myapp/
+ ├── src/
+ │    └── routes/
+ │         ├── users.js
+ │         └── bookings.js
+ ├── server.js
+ └── package.json
+
+Inside users.js
+const express = require("express");
+const router = express.Router();
+
+router.get("/", (req, res) => res.json({ message: "Users list" }));
+
+module.exports = router;
+
+Inside bookings.js
+const express = require("express");
+const router = express.Router();
+
+router.get("/", (req, res) => res.json({ message: "Bookings list" }));
+
+module.exports = router;
+
+Inside server.js
+const express = require("express");
+const loadRoutes = require("express-auto-routes"); // ← your package
+
+const app = express();
+const PORT = 3000;
+
+// Auto-load all routes from src/routes
+loadRoutes(app, "/api/v1");
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+🚦 Final Result
+
+When the user runs:
+
+node server.js
+
+
+/api/v1/users → handled by users.js
+
+/api/v1/bookings → handled by bookings.js
+
+Console:
+
+✅ Loaded route: /api/v1/users
+✅ Loaded route: /api/v1/bookings
+
+⚡ Next Steps
+
+Add error handling (e.g., if folder doesn’t exist).
+
+Allow nested routes (like /admin/users.js).
+
+Publish to npm with:
+
+npm login
+npm publish --access public

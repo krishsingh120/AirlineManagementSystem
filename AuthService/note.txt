@@ -1,0 +1,29 @@
+# frontend will send the jwt tokens in header.
+
+[ User Registers/Login ] 
+          ↓
+[ Server Validates & Issues JWT ]
+          ↓
+[ Client Stores Token ]
+          ↓
+[ Client Sends Request with JWT ]
+          ↓
+[ Middleware Verifies Token ]
+          ↓
+   [ Role Check ]
+   ┌───────────────┬───────────────┬───────────────┐
+   │   Admin       │   Manager     │    User       │
+   │ Full CRUD     │ CRU           │ Read only     │
+   └───────────────┴───────────────┴───────────────┘
+
+
+so in isAuth -> controller so from headers i will fetch that token, and then check this token is valid token or not.
+
+user.id => saved in req object 
+
+
+
+# Relationship model 
+
+1. User ------- Role  => Relationship is (many to many) 
+

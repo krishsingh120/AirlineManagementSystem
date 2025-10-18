@@ -1,0 +1,21 @@
+{
+  "name": "flightandsearch",
+  "version": "1.0.0",
+  "description": "Micro service and handling flight CRUD.",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx nodemon src/index.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.1",
+    "nodemon": "^3.1.10",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3"
+  }
+}

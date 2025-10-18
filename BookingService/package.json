@@ -1,0 +1,25 @@
+{
+  "name": "bookingservice",
+  "version": "1.0.0",
+  "description": "Booking Service",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx nodemon ./src/index.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "axios": "^1.11.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "http-status-codes": "^2.3.0",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.14.3",
+    "nodemon": "^3.1.10",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3"
+  }
+}

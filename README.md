@@ -48,6 +48,7 @@ Manages authentication, authorization, and user/role management:
 **Key Responsibility**: Central authority for authentication and authorization across the entire platform.
 
 **Models**:
+
 - `User`: Email, password hash, role associations
 - `Role`: Admin, User, Support roles with specific permissions
 
@@ -68,6 +69,7 @@ The source of truth for flight, airline, airport, and route metadata:
 **Key Responsibility**: Authoritative source for all flight and route information. All booking validations depend on data from this service.
 
 **Models**:
+
 - `City`: Geographic location data
 - `Airport`: Airport codes and metadata
 - `Airplane`: Aircraft type and capacity
@@ -90,9 +92,11 @@ Manages the complete flight booking lifecycle:
 **Key Responsibility**: Orchestrates the booking process, validates prerequisites, and triggers downstream events for notification services.
 
 **Models**:
+
 - `Booking`: Passenger details, flight references, booking status, timestamps
 
 **Event Publishing**:
+
 - Publishes `booking.created` events to RabbitMQ
 - Enables Reminder Service to consume events without direct coupling
 
@@ -112,6 +116,7 @@ Handles asynchronous booking notifications and reminders:
 **Key Responsibility**: Enhances user experience through timely notifications without adding latency to the booking process.
 
 **Features**:
+
 - Scheduled reminders at T-24h and T-2h before flight departure
 - Configurable email templates
 - Automatic cleanup of processed events
@@ -120,21 +125,21 @@ Handles asynchronous booking notifications and reminders:
 
 ## 💻 Technology Stack
 
-| Technology | Purpose | Rationale |
-|---|---|---|
-| **Node.js** | Runtime environment | Non-blocking I/O, excellent for I/O-heavy microservices |
-| **Express.js** | Web framework | Lightweight, modular, industry-standard for microservices |
-| **MySQL** | Relational database | ACID compliance for transactional consistency in bookings |
-| **Sequelize ORM** | Database abstraction | Type-safe queries, migrations, seed management |
-| **RabbitMQ** | Message broker | Reliable asynchronous communication with delivery guarantees |
-| **node-cron** | Job scheduling | Lightweight, in-process scheduling for reminders |
-| **Nodemailer** | Email service | Simple SMTP integration for notification delivery |
-| **express-rate-limit** | Rate limiting | Protects APIs from abuse and DoS attacks |
-| **http-proxy-middleware** | Request routing | Efficient proxying in API Gateway |
-| **Morgan** | HTTP logging | Request/response logging for observability |
-| **PM2** | Process manager | Cluster mode for horizontal scaling on single machines |
-| **AWS Auto Scaling** | Cloud scaling | Dynamic scaling based on CloudWatch metrics |
-| **JWT** | Authentication | Stateless, scalable authentication mechanism |
+| Technology                | Purpose              | Rationale                                                    |
+| ------------------------- | -------------------- | ------------------------------------------------------------ |
+| **Node.js**               | Runtime environment  | Non-blocking I/O, excellent for I/O-heavy microservices      |
+| **Express.js**            | Web framework        | Lightweight, modular, industry-standard for microservices    |
+| **MySQL**                 | Relational database  | ACID compliance for transactional consistency in bookings    |
+| **Sequelize ORM**         | Database abstraction | Type-safe queries, migrations, seed management               |
+| **RabbitMQ**              | Message broker       | Reliable asynchronous communication with delivery guarantees |
+| **node-cron**             | Job scheduling       | Lightweight, in-process scheduling for reminders             |
+| **Nodemailer**            | Email service        | Simple SMTP integration for notification delivery            |
+| **express-rate-limit**    | Rate limiting        | Protects APIs from abuse and DoS attacks                     |
+| **http-proxy-middleware** | Request routing      | Efficient proxying in API Gateway                            |
+| **Morgan**                | HTTP logging         | Request/response logging for observability                   |
+| **PM2**                   | Process manager      | Cluster mode for horizontal scaling on single machines       |
+| **AWS Auto Scaling**      | Cloud scaling        | Dynamic scaling based on CloudWatch metrics                  |
+| **JWT**                   | Authentication       | Stateless, scalable authentication mechanism                 |
 
 ---
 
@@ -155,6 +160,7 @@ API Gateway
 ```
 
 The API Gateway is the single point of entry. It:
+
 1. Validates incoming requests
 2. Routes to appropriate service based on URL path
 3. Logs all requests for monitoring
@@ -228,12 +234,12 @@ Step 5: Reminder Service Processing
 
 **Synchronous vs Asynchronous Communication**:
 
-| Aspect | Synchronous | Asynchronous |
-|--------|-------------|--------------|
-| Used For | Authentication, flight validation | Notifications, reminders |
-| Services | AuthService, FlightAndSearch | Reminder Service |
-| Benefits | Immediate feedback, data consistency | Decoupled, resilient, scalable |
-| Trade-offs | Tight coupling, performance impact | Eventual consistency |
+| Aspect     | Synchronous                          | Asynchronous                   |
+| ---------- | ------------------------------------ | ------------------------------ |
+| Used For   | Authentication, flight validation    | Notifications, reminders       |
+| Services   | AuthService, FlightAndSearch         | Reminder Service               |
+| Benefits   | Immediate feedback, data consistency | Decoupled, resilient, scalable |
+| Trade-offs | Tight coupling, performance impact   | Eventual consistency           |
 
 ---
 
@@ -242,45 +248,54 @@ Step 5: Reminder Service Processing
 Each microservice follows the **Database-per-Service** pattern:
 
 ### AuthService Database
+
 ```
 users (id, email, password_hash, created_at, updated_at)
     └─ roles (id, name, description, created_at)
     └─ user_roles (user_id, role_id)
 ```
+
 - Transactional consistency for authentication
 - Encrypted password storage
 - Role and permission management
 
 ### FlightAndSearch Database
+
 ```
 cities (id, name, country, created_at)
     └─ airports (id, city_id, code, name, created_at)
         └─ airplanes (id, model, capacity, created_at)
-            └─ flights (id, airplane_id, departure_airport_id, arrival_airport_id, 
+            └─ flights (id, airplane_id, departure_airport_id, arrival_airport_id,
                         departure_time, arrival_time, price, available_seats, created_at)
 ```
+
 - Normalized schema for flight data integrity
 - Indexed on frequently searched fields (date, airports, price)
 - Real-time seat availability tracking
 
 ### Booking Service Database
+
 ```
-bookings (id, user_id, flight_id, passenger_name, passenger_email, 
+bookings (id, user_id, flight_id, passenger_name, passenger_email,
           status, booking_reference, created_at, updated_at)
 ```
+
 - Isolated from other services
 - Tracks booking lifecycle (Pending → Confirmed → Cancelled)
 - Maintains booking history for auditing
 
 ### Reminder Service Database (Optional)
+
 ```
 reminders (id, booking_id, email, flight_details, status, sent_at, created_at)
 ```
+
 - Tracks sent reminders to prevent duplicates
 - Stores scheduling metadata
 - Audit trail for notification delivery
 
 ### Key Design Principles:
+
 - **Data Ownership**: Each service owns its schema exclusively
 - **No Cross-Service Queries**: Services communicate via APIs, not direct DB access
 - **Consistency**: MySQL ACID guarantees for critical operations (bookings)
@@ -329,17 +344,18 @@ AWS Architecture:
 
 ### Performance Optimization Strategies
 
-| Strategy | Implementation | Impact |
-|----------|----------------|--------|
-| **Horizontal Scaling** | PM2 clusters + AWS Auto Scaling Groups | Handles 10x traffic increase automatically |
-| **Load Balancing** | AWS ALB + PM2 load balancing | Even traffic distribution across instances |
-| **Stateless Services** | No session storage, JWT tokens | Easy horizontal scaling without affinity |
-| **Message Queuing** | RabbitMQ for async operations | Decouples services, reduces synchronous load |
-| **Database Indexing** | Indexes on flight search fields | Sub-100ms query response times |
-| **Connection Pooling** | Sequelize connection pools | Efficient database connection management |
-| **Caching** | Redis (optional for frequently accessed data) | Reduced database load for flight searches |
+| Strategy               | Implementation                                | Impact                                       |
+| ---------------------- | --------------------------------------------- | -------------------------------------------- |
+| **Horizontal Scaling** | PM2 clusters + AWS Auto Scaling Groups        | Handles 10x traffic increase automatically   |
+| **Load Balancing**     | AWS ALB + PM2 load balancing                  | Even traffic distribution across instances   |
+| **Stateless Services** | No session storage, JWT tokens                | Easy horizontal scaling without affinity     |
+| **Message Queuing**    | RabbitMQ for async operations                 | Decouples services, reduces synchronous load |
+| **Database Indexing**  | Indexes on flight search fields               | Sub-100ms query response times               |
+| **Connection Pooling** | Sequelize connection pools                    | Efficient database connection management     |
+| **Caching**            | Redis (optional for frequently accessed data) | Reduced database load for flight searches    |
 
 ### Expected Performance Metrics
+
 - **API Latency**: < 100ms for flights search, < 50ms for bookings
 - **Throughput**: 1000+ requests/second per API Gateway instance
 - **Availability**: 99.9% uptime with multi-zone deployment
@@ -391,13 +407,13 @@ Benefits of Microservices Architecture:
 
 ### Observability Stack
 
-| Component | Purpose |
-|-----------|---------|
-| **Morgan Logs** | Request/response logging for debugging |
-| **CloudWatch** | Centralized log aggregation (AWS) |
-| **CloudWatch Metrics** | CPU, Memory, Network monitoring |
-| **PM2 Dashboard** | Real-time process monitoring |
-| **Error Tracking** | Centralized error logging and alerts |
+| Component              | Purpose                                |
+| ---------------------- | -------------------------------------- |
+| **Morgan Logs**        | Request/response logging for debugging |
+| **CloudWatch**         | Centralized log aggregation (AWS)      |
+| **CloudWatch Metrics** | CPU, Memory, Network monitoring        |
+| **PM2 Dashboard**      | Real-time process monitoring           |
+| **Error Tracking**     | Centralized error logging and alerts   |
 
 ---
 
@@ -474,12 +490,14 @@ AirlineBookingSystem/
 ### Architectural Principles
 
 **Mono-Repository Structure**:
+
 - All services in single repository for easier management
 - Each service is independently deployable
 - Shared dependencies listed in individual package.json files
 - Services can be split to separate repositories as project grows
 
 **Service Independence**:
+
 - Each service has its own config, routes, models, controllers
 - No shared code between services (prevents tight coupling)
 - Each service runs on different ports
@@ -492,6 +510,7 @@ AirlineBookingSystem/
 ### Prerequisites
 
 Ensure you have the following installed:
+
 - **Node.js** (v18 or higher)
 - **npm** or **yarn**
 - **MySQL** (v8.0 or higher)
@@ -546,6 +565,7 @@ cd ..
 Create `.env` files in each service root directory:
 
 **AuthService/.env**
+
 ```env
 DB_HOST=localhost
 DB_PORT=3306
@@ -558,6 +578,7 @@ PORT=3001
 ```
 
 **FlightAndSearch/.env**
+
 ```env
 DB_HOST=localhost
 DB_PORT=3306
@@ -569,6 +590,7 @@ PORT=3002
 ```
 
 **BookingService/.env**
+
 ```env
 DB_HOST=localhost
 DB_PORT=3306
@@ -581,6 +603,7 @@ PORT=3003
 ```
 
 **ReminderService/.env**
+
 ```env
 DB_HOST=localhost
 DB_PORT=3306
@@ -598,6 +621,7 @@ PORT=3004
 ```
 
 **Api_Gateway/.env**
+
 ```env
 NODE_ENV=development
 PORT=3000
@@ -709,6 +733,7 @@ For cloud deployment:
 ## 💡 Use Cases
 
 ### 1. Flight Search
+
 **Scenario**: User searches for flights from New York to London on December 25
 
 ```
@@ -727,6 +752,7 @@ Request → API Gateway → FlightAndSearch Service
 ---
 
 ### 2. Secure User Registration & Login
+
 **Scenario**: New user signs up for the platform
 
 ```
@@ -746,6 +772,7 @@ Step 5: Client uses token for authenticated requests
 ---
 
 ### 3. Flight Booking with Async Notifications
+
 **Scenario**: User books a flight and receives reminder emails
 
 ```
@@ -769,6 +796,7 @@ Step 7: User receives emails without blocking booking API
 ---
 
 ### 4. Role-Based Admin Access
+
 **Scenario**: Only admins can manage flights and pricing
 
 ```
@@ -787,6 +815,7 @@ If denied: Return 403 Forbidden
 ---
 
 ### 5. Scalable Backend Handling Real-World Traffic
+
 **Scenario**: Flight booking surge during holiday season
 
 ```
@@ -814,6 +843,7 @@ After peak: Auto Scaling reduces instances, saves costs
 ### Loose Coupling via Event-Driven Architecture
 
 Traditional Tightly-Coupled Approach ❌
+
 ```
 Booking Service
     ↓
@@ -825,6 +855,7 @@ If fails: Booking fails
 ```
 
 Event-Driven Architecture ✅
+
 ```
 Booking Service
     ↓
@@ -842,6 +873,7 @@ If fails: Retry; booking still succeeds
 ### Database Per Service Pattern
 
 Each service owns its data:
+
 ```
 AuthService → airline_auth_db
 FlightAndSearch → airline_flight_db
@@ -850,6 +882,7 @@ ReminderService → airline_reminder_db
 ```
 
 **Benefits**:
+
 - Services scale independently
 - Database schema changes don't affect other services
 - Clear ownership and accountability
@@ -882,6 +915,7 @@ No session state = unlimited horizontal scaling
 ### Debugging Across Services
 
 Use request IDs to trace flow:
+
 ```
 curl -H "X-Request-ID: req-12345" http://localhost:3000/api/flights
     ↓
@@ -908,8 +942,6 @@ Trace complete request journey in logs
 - **HTTPS**: Enforced in production (via load balancer)
 
 ---
-
-
 
 ## 📄 License
 
